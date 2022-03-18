@@ -1,0 +1,25 @@
+.all {
+    margin: auto;
+    margin-top: 10px;
+    width: 150px;
+    height: 150px;
+    background-color: #e3edfb;
+    border-radius: 10px;
+}
+
+.left {
+    width: 60px;
+    height: 150px;
+    float: left;
+    background-color: white;
+
+    border-radius: 10px;
+}
+
+.right {
+    width: 60px;
+    height: 150px;
+    float: right;
+    background-color: white;
+    border-radius: 10px;
+}

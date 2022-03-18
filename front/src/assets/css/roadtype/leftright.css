@@ -1,0 +1,23 @@
+.all {
+    margin: auto;
+    margin-top: 10px;
+    width: 150px;
+    height: 150px;
+    background-color: #e3edfb;
+    border-radius: 10px;
+}
+
+.up {
+    height: 60px;
+    width: 150px;
+    background-color: white;
+    border-radius: 10px;
+}
+
+.down {
+    height: 60px;
+    width: 150px;
+    margin-top: 30px;
+    background-color: white;
+    border-radius: 10px;
+}
