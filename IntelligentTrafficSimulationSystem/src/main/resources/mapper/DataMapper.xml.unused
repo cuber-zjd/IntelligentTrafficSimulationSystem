@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cuber.mapper.DataMapper">
+
+    <resultMap id="DataResult" type="Data">
+        <id property="id" column="id"/>
+        <result property="starttime" column="starttime"/>
+        <result property="endtime" column="endtime"/>
+        <result property="num" column="num"/>
+        <result property="avgspeed" column="avgspeed"/>
+        <result property="maxspeed" column="maxspeed"/>
+        <result property="minspeed" column="minspeed"/>
+        <result property="direction" column="direction"/>
+        <result property="userid" column="userid"/>
+        <association property="road" column="roadid" javaType="Road" resultMap="roadResult"/>
+    </resultMap>
+    
+    <resultMap id="roadResult" type="Road">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="type" column="type"/>
+        <result property="lng" column="lng"/>
+        <result property="lat" column="lat"/>
+        <result property="userid" column="userid"/>
+    </resultMap>
+    <select id="selectUserList" resultMap="DataResult" parameterType="integer">
+        select d.*,r.*
+        from data d,road r
+        where d.roadid=r.id and d.userid=#{id}
+    </select>
+
+
+</mapper>

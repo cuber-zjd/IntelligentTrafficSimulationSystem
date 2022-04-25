@@ -1,21 +1,19 @@
 package com.cuber.controller;
 
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.cuber.controller.utils.R;
 import com.cuber.entity.User;
-import com.cuber.mapper.UserMapper;
+import com.cuber.entity.dto.LoginDTO;
+import com.cuber.entity.vo.Password;
 import com.cuber.service.IUserService;
-import com.cuber.utils.TokenUtils;
+import com.cuber.utils.result.Result;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import org.springframework.stereotype.Controller;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -33,9 +31,12 @@ public class UserController {
     @Autowired
     private IUserService userService;
 
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
     /**
      * 查询全部
-     * @return R
+     * @return Result
      */
     @GetMapping
     public  R getAll(){
@@ -45,30 +46,58 @@ public class UserController {
     /**
      * 登录
      * @param user
-     * @return R
+     * @return Result
      */
     @PostMapping("/login")
-    public R login(@RequestBody User user){
+    public Result login(@RequestBody User user){
         User byUserName = userService.getByUserName(user);
         if(byUserName!=null&&user.getPassword().equals(byUserName.getPassword())){
-            String s = TokenUtils.generateToken(byUserName);
-            User user1 = new User();
-            user1.setUsername(byUserName.getUsername());
-            user1.setId(byUserName.getId());
-            return new R(true,user1,s);
+
+            String uuid = "user-token:" + UUID.randomUUID();
+            redisTemplate.opsForValue().set(uuid, byUserName.getId().toString(),30,TimeUnit.MINUTES);
+            System.out.println(redisTemplate.opsForValue().get(uuid));
+            LoginDTO loginDTO = new LoginDTO();
+            loginDTO.setUserid(byUserName.getId());
+            loginDTO.setToken(uuid);
+            return Result.success(loginDTO);
         }
-        return new R(false,null,"用户名或密码不正确");
+        return Result.fail();
     }
 
     /**
      * 通过id获取全部信息
      * @param id
-     * @return R
+     * @return Result
      */
     @GetMapping("{id}")
-    public R getUserById(@PathVariable Integer id){
-        return new R(true,userService.getById(id));
+    public Result getUserById(@PathVariable Integer id){
+        return Result.success(userService.getById(id));
     }
 
+    /**
+     * 修改用户信息
+     * @param id
+     * @param user
+     * @return Result
+     */
+    @PutMapping("{id}")
+    public Result updateInfoById(@PathVariable Integer id,@RequestBody User user){
+        user.setId(id);
+        userService.updateById(user);
+        return Result.success();
+    }
+
+    @PutMapping("updatePassword/{id}")
+    public Result updatePasswordById(@PathVariable Integer id, @RequestBody Password password){
+        System.out.println(password.toString());
+        if (userService.getById(id).getPassword().equals(password.getPassword())){
+            User user=new User();
+            user.setId(id);
+            user.setPassword(password.getNewPassword());
+            userService.updateById(user);
+            return Result.success("修改成功");
+        }
+        return Result.fail("原密码错误，修改失败");
+    }
 }
 

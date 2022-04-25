@@ -1,6 +1,7 @@
 package com.cuber.configration;
 
 import com.cuber.interceptor.AdminInterceptor;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -13,9 +14,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class AdminConfig implements WebMvcConfigurer {
 
+    @Bean
+    public AdminInterceptor adminInterceptor(){
+        return new AdminInterceptor();
+    }
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        InterceptorRegistration registration = registry.addInterceptor(new AdminInterceptor());
+        InterceptorRegistration registration = registry.addInterceptor(adminInterceptor());
         //所有路径都被拦截
         registration.addPathPatterns("/**");
         //添加不拦截路径

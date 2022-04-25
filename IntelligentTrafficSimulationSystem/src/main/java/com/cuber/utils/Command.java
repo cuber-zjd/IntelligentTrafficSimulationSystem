@@ -12,16 +12,18 @@ import java.util.List;
 
 
 public class Command {
-    public static List<Double> exeCmd(String commandStr) {
+    public static List<String> exeCmd(String commandStr) {
         List<Double> speeds=new ArrayList<>();
+        List<String> message=new ArrayList<>();
         BufferedReader br = null;
         try {
             Process p = Runtime.getRuntime().exec(commandStr);
             br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
             StringBuilder sbError= new StringBuilder();
             String line = null;
             String lineError= null;
-            StringBuilder sb = new StringBuilder();
+
             while ((line = br.readLine()) != null) {
                 String []linestr=line.split(" ");
 
@@ -29,17 +31,23 @@ public class Command {
                     if (120>Math.abs(Double.parseDouble(linestr[2]))&&5<Math.abs(Double.parseDouble(linestr[2]))){
                         speeds.add(Math.abs(Double.parseDouble(linestr[2])));
                     }
+                    message.add(line);
                 }
-                sb.append(line + "\n");
+                if("duration".equals(linestr[0])){
+                    System.out.println(linestr[1]);
+                    message.add(line);
+                }
+                System.out.println(line);
             }
 
             BufferedReader    isError = new BufferedReader(new InputStreamReader(p.getErrorStream(),"gbk"));
             while ((lineError= isError.readLine()) != null) {
                 sbError.append(lineError);
                 sbError.append("\n");
+                System.out.println(lineError);
             }
 
-            return speeds;
+            return message;
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

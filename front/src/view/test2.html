@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>武汉车辆密度分布</title>
+    <style>
+        html,
+        body,
+        #map {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .demo-title {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            z-index: 1;
+        }
+
+        h1 {
+            font-size: 18px;
+            margin: 0;
+            color: black;
+        }
+
+        h3 {
+            font-size: 12px;
+            font-weight: normal;
+            margin-top: 5px;
+            color: rgb(150, 150, 150);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="demo-title">
+        <h1>网格图--车辆数量热力</h1>
+        <h3>通过热力映射车辆分布情况，颜色和高度体现出车辆密度与数量</h3>
+    </div>
+    <div id="map"></div>
+
+    <script src="https://webapi.amap.com/maps?v=2.0&key=339ce89acd28bd971dffd76ea92badf3"></script>
+    <script src="https://webapi.amap.com/loca?v=2.0.0&key=339ce89acd28bd971dffd76ea92badf3"></script>
+    <script>
+        var map = new AMap.Map('map', {
+            showLabel: false,
+            viewMode: '3D',
+            pitch: 50,
+            zoom: 12, //初始化地图层级
+            center: [121.496534, 31.243335] //初始化地图中心点
+        });
+        // 创建loca
+        var loca = new Loca.Container({
+            map: map,
+        });
+
+        // 设置光源
+        // 环境光
+        loca.ambLight = {
+            intensity: 0.8, // 环境光强度，建议值: 0～1
+            color: '#fff', // 环境光颜色
+        };
+        // 平行光
+        loca.dirLight = {
+            intensity: 0.5, // 光照强度，建议值: 0～1
+            color: 'rgb(255,255,255)', // 平行光颜色
+            target: [0, 0, 0], // 光射向的目标位置
+            position: [0, -1, 1], // 坐标位置
+        };
+        // 点光
+        loca.pointLight = {
+            color: 'rgb(255,255,255)', // 点光颜色
+            position: [121.50741577148439, 31.236288641793006, 1000], // 点光的位置
+            intensity: 4, // 光照强度
+            // 距离表示从光源到光照强度为 0 的位置，0 就是光不会消失。
+            distance: 10000,
+        };
+    </script>
+</body>

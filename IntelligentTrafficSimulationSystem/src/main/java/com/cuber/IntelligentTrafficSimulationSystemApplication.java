@@ -5,7 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-@MapperScan("com.cuber.mapper")
+@MapperScan(basePackages = "com.cuber.mapper")
 public class IntelligentTrafficSimulationSystemApplication {
 
     public static void main(String[] args) {

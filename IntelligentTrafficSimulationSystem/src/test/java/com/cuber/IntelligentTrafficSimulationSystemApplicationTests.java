@@ -28,11 +28,10 @@ class IntelligentTrafficSimulationSystemApplicationTests {
                 })
                 .packageConfig(builder -> {
                     builder.parent("com.cuber") // 设置父包名
-                            .pathInfo(Collections.singletonMap(OutputFile.mapperXml, System.getProperty("user.dir")+"src/main/resources")); // 设置mapperXml生成路径
+                            .pathInfo(Collections.singletonMap(OutputFile.mapperXml, System.getProperty("user.dir")+"/src/main/resources")); // 设置mapperXml生成路径
                 })
                 .strategyConfig(builder -> {
-                    builder.addInclude("data").addInclude("intersection"); // 设置需要生成的表名
-
+                    builder.addInclude("detect_setting"); // 设置需要生成的表名
                 })
                 .execute();    }
 

@@ -99,7 +99,7 @@ if __name__ == '__main__':
         if len(list_bboxs) > 0:
 
             idx += 1
-            divided = idx % fps
+            divided = idx % int(fps)
 
             if divided == 0:
                 time += 1
@@ -108,9 +108,6 @@ if __name__ == '__main__':
 
             # ----------------------判断撞线----------------------
             for item_bbox in list_bboxs:
-                first_time=0
-                second_time=0
-
                 x1, y1, x2, y2, _, track_id = item_bbox
                 # 撞线检测点，(x1，y1)，y方向偏移比例 0.0~1.0
                 y1_offset = int(y1 + ((y2 - y1) * 0.6))

@@ -10,27 +10,42 @@ import cv2
 from car import Car
 
 
-VIDEO_PATH = './video/在健身路上过天桥拍个车流视频，用yolo检测一下 - car.mp4'
 
 if __name__ == '__main__':
-# def count_car(direction，VIDEO_PATH):
 
-    # VIDEO_PATH=sys.argv[2]
+    VIDEO_PATH=sys.argv[2]
     # 根据视频尺寸，填充供撞线计算使用的polygon
     # 1364,768
     width = 1364
     height = 768
     mask_image_temp = np.zeros((height, width), dtype=np.uint8)
+    # 获取检测参数
+    linePosx=float(sys.argv[3])*13.64
+    linePosy=float(sys.argv[4])*7.68
+    lineLength=float(sys.argv[5])*13.64
+    twoLineDistant=float(sys.argv[6])*2
+
+    if linePosx+lineLength>1364:
+        lineLength=1364-linePosx
+    if linePosy+40+twoLineDistant>768:
+        linePosy=768-40-twoLineDistant
+    distant=float(sys.argv[7])
 
     # 填充第一个撞线polygon（蓝色）
-    list_pts_blue = [[204, 305], [1200, 305], [1200, 325], [204, 325]]
+    list_pts_blue = [[linePosx, linePosy], [linePosx+lineLength, linePosy], [linePosx+lineLength, linePosy+20], [linePosx, linePosy+20]]
+    # list_pts_blue = [[204, 305], [1200, 305], [1200, 325], [204, 325]]
+
     ndarray_pts_blue = np.array(list_pts_blue, np.int32)
     polygon_blue_value_1 = cv2.fillPoly(mask_image_temp, [ndarray_pts_blue], color=1)
     polygon_blue_value_1 = polygon_blue_value_1[:, :, np.newaxis]
 
     # 填充第二个撞线polygon（黄色）
     mask_image_temp = np.zeros((height, width), dtype=np.uint8)
-    list_pts_yellow = [[204, 385], [1200, 385], [1200, 405], [204, 405]]
+    list_pts_yellow = [[linePosx, linePosy+20+twoLineDistant],
+                       [linePosx+lineLength, linePosy+20+twoLineDistant],
+                       [linePosx+lineLength, linePosy+40+twoLineDistant],
+                       [linePosx, linePosy+40+twoLineDistant]]
+    # list_pts_yellow = [[204, 385], [1200, 385], [1200, 405], [204, 405]]
     ndarray_pts_yellow = np.array(list_pts_yellow, np.int32)
     polygon_yellow_value_2 = cv2.fillPoly(mask_image_temp, [ndarray_pts_yellow], color=2)
     polygon_yellow_value_2 = polygon_yellow_value_2[:, :, np.newaxis]
@@ -80,21 +95,19 @@ if __name__ == '__main__':
     #时间参数
     idx = 0
     fps = capture.get(5)
+
     divided = 0
     time = 0
 
     first_time = 0
     second_time = 0
 
-    distant=10
     # 车辆数量
     count=0
 
-    # direction=sys.argv[1]
-    direction="1"
+    direction=sys.argv[1]
 
     cars=[]
-    print(direction,VIDEO_PATH)
     while True:
         # 读取每帧图片
         _, im = capture.read()
@@ -113,7 +126,7 @@ if __name__ == '__main__':
         if len(list_bboxs) > 0:
 
             idx += 1
-            divided = idx % fps
+            divided = idx % int(fps)
 
             if divided == 0:
                 time += 1
@@ -137,16 +150,19 @@ if __name__ == '__main__':
                         if track_id not in list_overlapping_blue_polygon:
                             list_overlapping_blue_polygon.append(track_id)
                             first_time = time + (divided / fps)
+                            car=Car(track_id,first_time)
+                            cars.append(car)
+
 
                     elif polygon_mask_blue_and_yellow[y, x] == 2:
                         # 有此 track_id，则 认为是 DOWN（下行）方向
                         if track_id in list_overlapping_blue_polygon:
                             # 下行+1
                             second_time = time + (divided / fps)
-                            if second_time-first_time!=0:
-                                count += 1
-                                car=Car(track_id,distant/(second_time-first_time))
-                                cars.append(car)
+                            for index in range(len(cars)):
+                                if cars[index].id==track_id:
+                                    cars[index].secondTime=second_time
+
                             # 删除 蓝polygon list 中的此id
                             list_overlapping_blue_polygon.remove(track_id)
                 elif direction == "1":
@@ -156,10 +172,9 @@ if __name__ == '__main__':
                         if track_id in list_overlapping_yellow_polygon:
                             # 上行+1
                             second_time = time + (divided / fps)
-                            if second_time-first_time!=0:
-                                car = Car(track_id, distant / (second_time - first_time))
-                                cars.append(car)
-                                count += 1
+                            for index in range(len(cars)):
+                                if cars[index].id==track_id:
+                                    cars[index].secondTime=second_time
 
                             # 删除 黄polygon list 中的此id
                             list_overlapping_yellow_polygon.remove(track_id)
@@ -169,7 +184,8 @@ if __name__ == '__main__':
                         if track_id not in list_overlapping_yellow_polygon:
                             list_overlapping_yellow_polygon.append(track_id)
                             first_time = time + (divided / fps)
-
+                            car = Car(track_id, first_time)
+                            cars.append(car)
 
             # ----------------------清除无用id----------------------
             list_overlapping_all = list_overlapping_yellow_polygon + list_overlapping_blue_polygon
@@ -195,15 +211,22 @@ if __name__ == '__main__':
             list_overlapping_yellow_polygon.clear()
 
         # 输出计数信息
-        text_draw = 'count: ' + str(count)
+        text_draw = 'detect direction: ' + ("up" if direction==1 else "down")
 
-        output_image_frame = cv2.putText(img=output_image_frame, text=text_draw,
+        output_image_frame = cv2.putText(img=output_image_frame,text=text_draw,
                                          org=draw_text_postion,
                                          fontFace=font_draw_number,
                                          fontScale=0.75, color=(0, 0, 255), thickness=2)
         cv2.imshow('Counting Demo', output_image_frame)
         cv2.waitKey(1)
+    print("-----------fps:", fps)
     for car in cars:
-        print("car",car.id,car.speed)
+        if car.secondTime-car.firstTime!=0 and car.secondTime!=0:
+            print("car",car.id,distant/(car.secondTime-car.firstTime),car.firstTime,car.secondTime);
+    if capture.isOpened():
+        rate=capture.get(5)
+        frame_num=capture.get(7)
+        duration=frame_num/rate
+        print("duration",duration)
     capture.release()
     cv2.destroyAllWindows()

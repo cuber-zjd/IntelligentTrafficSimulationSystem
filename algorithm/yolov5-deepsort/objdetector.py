@@ -50,7 +50,7 @@ class Detector(baseDet):
 
     def init_model(self):
         self.weights = DETECTOR_PATH
-        self.device = '' if torch.cuda.is_available() else 'cpu'
+        self.device = 'gpu' if torch.cuda.is_available() else 'cpu'
         self.device = select_device(self.device)
         model = attempt_load(self.weights, map_location=self.device)
         model.to(self.device).eval()

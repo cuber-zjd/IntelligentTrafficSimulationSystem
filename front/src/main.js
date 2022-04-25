@@ -8,7 +8,7 @@ import VueAxios from 'vue-axios'
 import '@/assets/css/common.css'
 import * as ElIconModules from '@element-plus/icons'
 import store from '@/store'
-
+import '@/permission'
 
 
 
@@ -17,8 +17,6 @@ const app = createApp(App)
 for (let iconName in ElIconModules) {
     app.component(iconName, ElIconModules[iconName])
 }
-
-
 
 app.use(router)
 app.use(ElementPlus)
