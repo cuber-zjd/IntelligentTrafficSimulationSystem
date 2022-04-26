@@ -31,9 +31,9 @@ class IntelligentTrafficSimulationSystemApplicationTests {
                             .pathInfo(Collections.singletonMap(OutputFile.mapperXml, System.getProperty("user.dir")+"/src/main/resources")); // 设置mapperXml生成路径
                 })
                 .strategyConfig(builder -> {
-                    builder.addInclude("detect_setting"); // 设置需要生成的表名
+                    builder.addInclude("light_param"); // 设置需要生成的表名
                 })
-                .execute();    }
+                .execute();}
 
     @Autowired
     private IUserService userService;

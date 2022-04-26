@@ -8,7 +8,7 @@ from utils.torch_utils import select_device
 import objtracker
 
 OBJ_LIST = ['person', 'car', 'bus', 'truck']
-DETECTOR_PATH = 'weights/yolov5m.pt'
+DETECTOR_PATH = 'weights/yolov5s.pt'
 
 class baseDet(object):
     def __init__(self):
@@ -50,7 +50,7 @@ class Detector(baseDet):
 
     def init_model(self):
         self.weights = DETECTOR_PATH
-        self.device = 'gpu' if torch.cuda.is_available() else 'cpu'
+        self.device = 'cuda device' if torch.cuda.is_available() else 'cpu'
         self.device = select_device(self.device)
         model = attempt_load(self.weights, map_location=self.device)
         model.to(self.device).eval()

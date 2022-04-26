@@ -116,7 +116,6 @@ const query = () => {
   }).then((res) => {
     speeds.value = res.data;
     init();
-    console.log(speeds.value);
   });
 };
 

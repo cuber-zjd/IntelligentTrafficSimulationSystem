@@ -39,24 +39,59 @@
         </el-select>
       </el-form-item>
 
-      <el-form-item label="车流量权值">
-        <el-input placeholder="请输入车流量权重"></el-input>
+      <el-form-item label="相邻道路长度：">
+        <el-input
+          placeholder="请输入相邻道路长度"
+          v-model="roadLength"
+        ></el-input>
       </el-form-item>
 
-      <el-form-item label="车辆数目权重">
-        <el-input placeholder="请输入车辆数目权重"></el-input>
-      </el-form-item>
-
-      <el-form-item label="车速权值">
-        <el-input placeholder="请输入车速权值"></el-input>
-      </el-form-item>
-
-      <el-form-item>
-        <el-button type="success" class="m-2" @click="query"
-          >保存权值</el-button
+      <el-form-item label="选择参数：">
+        <el-select
+          v-model="paramId"
+          class="m-2"
+          placeholder="选择参数"
+          size="large"
         >
+          <el-option
+            v-for="item in paramList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id"
+          />
+        </el-select>
+      </el-form-item>
+
+      <el-descriptions class="margin-top" :column="2" :size="size" border>
+        <!-- 道路名称 -->
+        <el-descriptions-item>
+          <template #label>
+            <div class="cell-item">
+              <el-icon :style="iconStyle">
+                <user />
+              </el-icon>
+              车流量权值
+            </div>
+          </template>
+          {{ param.trafficFlow }}
+        </el-descriptions-item>
+
+        <el-descriptions-item>
+          <template #label>
+            <div class="cell-item">
+              <el-icon :style="iconStyle">
+                <user />
+              </el-icon>
+              车速权值
+            </div>
+          </template>
+          {{ param.speed }}
+        </el-descriptions-item>
+      </el-descriptions>
+
+      <el-form-item style="margin-top: 20px">
         <!-- 查询按钮 -->
-        <el-button type="primary" class="m-2" @click="query">查询</el-button>
+        <el-button type="primary" class="m-2" @click="query">计算</el-button>
       </el-form-item>
     </el-form>
 
@@ -70,14 +105,87 @@
     </template>
 
     <div class="light-box">
-      <div class="light" style="background-color: #b22222">00</div>
-      <div class="light" style="background-color: #ffd700">00</div>
-      <div class="light" style="background-color: #32cd32">00</div>
+      <div class="light" style="background-color: #b22222">{{ lightTime }}</div>
+      <div class="light" style="background-color: #ffd700">03</div>
+      <div class="light" style="background-color: #32cd32">{{ lightTime }}</div>
     </div>
   </el-card>
 </template>
 
 <script setup>
+import { getAllByUserId } from "@/api/road";
+import { onMounted, ref, watch } from "vue-demi";
+import { useStore } from "vuex";
+import { getParamsByUserId, getById } from "@/api/lightParam";
+import { getByRoadIdAndTime } from "@/api/data";
+import { getDateFromString } from "@/utils/formatDate";
+
+const store = useStore();
+
+const dateTime = ref([]);
+const lightTime = ref(0);
+const roadLength = ref(0);
+
+const param = ref({
+  trafficFlow: 0,
+  speed: 0,
+});
+const paramId = ref(null);
+
+const roadId = ref(null);
+let roadList = ref([]);
+const initRoadList = () => {
+  getAllByUserId(store.state.user.userid).then((res) => {
+    roadList.value = res.data;
+  });
+};
+
+let paramList = ref([]);
+const initParamList = () => {
+  getParamsByUserId(store.state.user.userid).then((res) => {
+    paramList.value = res.data;
+  });
+};
+
+watch(
+  () => paramId.value,
+  (val) => {
+    getById(val).then((res) => {
+      param.value = res.data;
+    });
+  }
+);
+
+const query = () => {
+  getByRoadIdAndTime({
+    roadId: roadId.value,
+    startTime: dateTime.value[0],
+    endTime: dateTime.value[1],
+  }).then((res) => {
+    const flow =
+      res.data.length /
+      ((getDateFromString(dateTime.value[1]) -
+        getDateFromString(dateTime.value[0])) /
+        1000 /
+        60);
+    let sum = 0;
+    for (let i = 0; i < res.data.length; i++) {
+      sum += res.data[i];
+    }
+    const speed = sum / res.data.length;
+    lightTime.value = (
+      ((roadLength.value / (speed * param.value.speed)) *
+        (flow * param.value.trafficFlow)) /
+      2
+    ).toFixed(0);
+    console.log(lightTime.value);
+  });
+};
+
+onMounted(() => {
+  initRoadList();
+  initParamList();
+});
 </script>
 
 <style scoped>
